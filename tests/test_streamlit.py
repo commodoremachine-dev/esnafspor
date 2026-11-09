@@ -337,6 +337,56 @@ class StreamlitAppTests(DbTestCase):
         self.assertEqual(db.get_appointment(appointment_id)["status"], "cancelled")
         self.assertIn(":red-badge[❌ İptal]", self.markdown_text(app))
 
+    def past_today_appointment(self):
+        """Bugün saati geçmiş randevu (gece yarısı hemen sonrasıysa testi atla)."""
+        now_local = utils.local_now("Europe/Istanbul")
+        if now_local.hour == 0 and now_local.minute < 30:
+            self.skipTest("gece yarısına çok yakın")
+        customer_id = db.upsert_customer("Geçmiş Müşteri", "905441112233")
+        start = utils.now_utc() - timedelta(minutes=20)
+        self.view = "Bugün"
+        return db.create_appointment(customer_id, start, 60, "Kesim")
+
+    def test_past_card_offers_came_and_missed(self):
+        appointment_id = self.past_today_appointment()
+        app = self.run_cards()
+        keys = [button.key for button in app.button]
+        self.assertNotIn(f"remind_{appointment_id}", keys)
+        self.assertIn(f"came_{appointment_id}", keys)
+
+        app.button(key=f"missed_{appointment_id}").click().run()
+        self.assertEqual(db.get_appointment(appointment_id)["status"], "no_show")
+        self.assertIn(":red-badge[❌ Gelmedi]", self.markdown_text(app))
+
+    def test_manual_reminder_refused_for_past_appointment(self):
+        appointment_id = self.past_today_appointment()
+        result = worker.send_manual_reminder(appointment_id)
+        self.assertFalse(result["ok"])
+        self.assertIn("geçmiş", result["message"])
+        self.assertEqual(db.recent_messages(5), [])
+
+    def test_streamlit_takes_over_engine_when_other_process_stops(self):
+        import scheduler as scheduler_module
+
+        blocker = scheduler_module.SingleInstanceLock()
+        self.assertTrue(blocker.acquire())  # başka bir süreç motoru çalıştırıyor
+        try:
+            with patch.dict(os.environ, {"ESNAF_STREAMLIT_SCHEDULER": "1"}):
+                app = self.run_cards()
+                self.assertFalse(app.exception, app.exception)
+                running = [t for t in __import__("threading").enumerate() if t.name == "esnaf-scheduler"]
+                self.assertEqual(running, [], "kilit doluyken ikinci motor açılmamalı")
+                blocker.release()
+                app.run()  # sayfa yenilendi: motor devralınmalı
+                running = [t for t in __import__("threading").enumerate() if t.name == "esnaf-scheduler"]
+                self.assertEqual(len(running), 1)
+        finally:
+            blocker.release()
+            for thread in __import__("threading").enumerate():
+                if thread.name == "esnaf-scheduler":
+                    thread.stop()
+                    thread.join(timeout=5)
+
     def test_tomorrow_view(self):
         tomorrow_noon = (utils.local_now("Europe/Istanbul") + timedelta(days=1)).strftime("%Y-%m-%dT12:00")
         result = booking.create_booking("Yarınki Müşteri", "05321112233", tomorrow_noon)

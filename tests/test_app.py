@@ -451,6 +451,19 @@ class PanelTestCase(PanelTestBase):
             body = self.client.get("/").get_data(as_text=True)
         self.assertIn("İlk 2 randevu gösteriliyor", body)
 
+    def test_default_datetime_passes_browser_validation(self):
+        """Tarayıcı, value değeri min + k*step değilse formu göndermez."""
+        import re
+        from datetime import datetime
+
+        body = self.client.get("/").get_data(as_text=True)
+        tag = re.search(r'<input[^>]*id="starts_at"[^>]*>', body, re.S).group(0)
+        value = datetime.strptime(re.search(r'value="([^"]+)"', tag).group(1), "%Y-%m-%dT%H:%M")
+        minimum = datetime.strptime(re.search(r'data-min="([^"]+)"', tag).group(1), "%Y-%m-%dT%H:%M")
+        step = int(re.search(r'step="(\d+)"', tag).group(1))
+        self.assertGreaterEqual(value, minimum)
+        self.assertEqual((value - minimum).total_seconds() % step, 0)
+
     def test_settings_page_lists_relative_day_placeholder(self):
         self.assertIn("{ne_zaman}", self.client.get("/ayarlar").get_data(as_text=True))
 

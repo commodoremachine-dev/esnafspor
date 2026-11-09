@@ -51,24 +51,35 @@ def _bootstrap() -> None:
 
 
 @st.cache_resource
-def _start_scheduler() -> str:
+def _scheduler_holder() -> dict:
+    return {"thread": None}
+
+
+def _ensure_scheduler() -> str:
     """Hiç zamanlayıcı çalışmıyorsa bu süreçte başlatır.
 
     `python main.py` veya `python scheduler.py` zaten çalışıyorsa tek örnek
     kilidi sayesinde ikinci bir motor açılmaz; mesajları o süreç gönderir.
+    O süreç sonradan kapanırsa, sayfa bir sonraki yenilendiğinde motor burada
+    devralınır (kilit denemesi ucuzdur, yalnızca sayfa yenilenirken yapılır).
     """
     if os.environ.get("ESNAF_STREAMLIT_SCHEDULER", "1") != "1":
         return "disabled"
-    thread = scheduler.Scheduler()
+    holder = _scheduler_holder()
+    thread = holder["thread"]
+    if thread is not None and thread.is_alive():
+        return "internal"
+    candidate = scheduler.Scheduler()
     try:
-        thread.start()
+        candidate.start()
     except scheduler.SchedulerAlreadyRunning:
         return "external"
+    holder["thread"] = candidate
     return "internal"
 
 
 _bootstrap()
-_start_scheduler()
+_ensure_scheduler()
 
 # Dokunma dostu ölçüler: düğmeler en az 48 px; telefonda başlık tek satıra sığsın.
 st.html(
@@ -277,6 +288,26 @@ def appointment_card(item: dict, confirmation: dict, tz_name: str) -> None:
         if lines:
             st.markdown(" · ".join(lines))
         if not active:
+            return
+        start = utils.parse_iso(item["starts_at"])
+        if start is not None and start <= utils.now_utc():
+            # Saati geçmiş randevu: hatırlatma anlamsız, esnaf sonucu işaretler.
+            col_came, col_missed = st.columns(2, gap="small")
+            col_came.button(
+                "✅ Geldi",
+                key=f"came_{appointment_id}",
+                type="primary",
+                width="stretch",
+                on_click=_set_status,
+                args=(appointment_id, "completed", f"✅ {name} geldi olarak işaretlendi."),
+            )
+            col_missed.button(
+                "🙅 Gelmedi",
+                key=f"missed_{appointment_id}",
+                width="stretch",
+                on_click=_set_status,
+                args=(appointment_id, "no_show", f"🙅 {name} gelmedi olarak işaretlendi."),
+            )
             return
         col_remind, col_confirm = st.columns(2, gap="small")
         col_remind.button(

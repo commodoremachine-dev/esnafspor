@@ -337,6 +337,9 @@ def send_manual_reminder(appointment_id: int, *, allow_repeat: bool = False) -> 
         return {"ok": False, "message": "Bu randevu aktif değil; hatırlatma gönderilmez."}
     if int(appointment.get("customer_opted_out") or 0):
         return {"ok": False, "message": "Bu müşteri mesaj almak istemiyor; hatırlatma gönderilmez."}
+    starts_at = utils.parse_iso(appointment.get("starts_at"))
+    if starts_at is not None and starts_at <= utils.now_utc():
+        return {"ok": False, "message": "Randevu saati geçmiş; hatırlatma gönderilmez."}
 
     duplicate = {
         "ok": False,
