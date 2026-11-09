@@ -1,0 +1,21 @@
+# Streamlit paneli ayarları (streamlit run streamlit_app.py proje klasöründen çalıştırılmalı).
+
+[server]
+# Varsayılan: yalnızca bu bilgisayar. Telefondan erişim için:
+#   streamlit run streamlit_app.py --server.address 0.0.0.0
+# Bu durumda .env içinde ESNAF_PASSWORD zorunludur (yoksa panel açılmaz).
+address = "127.0.0.1"
+port = 8501
+headless = true
+enableXsrfProtection = true
+enableCORS = true
+
+[browser]
+gatherUsageStats = false
+
+[client]
+toolbarMode = "minimal"
+showErrorDetails = false
+
+[theme]
+primaryColor = "#059669"

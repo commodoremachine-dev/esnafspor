@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.deps/
+.tmp/
+.pytest_cache/
+
+# Uygulama verileri
+data/
+*.db
+*.db-wal
+*.db-shm
+logs/
+
+# Ortam / sırlar
+.env
+
+# Tailwind derleme aracı (static/app.css commit edilir)
+tailwind/node_modules/
+
+# Streamlit sırları
+.streamlit/secrets.toml

@@ -1,0 +1,18 @@
+# =====================================================================
+#  Esnaf Randevu Asistanı — çekirdek bağımlılıklar
+#  Kurulum:  pip install -r requirements.txt
+#  Çalıştır: python main.py
+# =====================================================================
+
+# Web paneli (sunucu + HTML şablonları)
+Flask>=3.1,<4.0
+
+# Panel sunucusu (Windows'ta da çalışan üretim WSGI sunucusu)
+waitress>=3.0,<4
+
+# Windows'ta "Europe/Istanbul" saat dilimi verisi için gerekli
+tzdata>=2024.1
+
+# --- İsteğe bağlı: pywhatkit ile WhatsApp Web üzerinden gönderim -----
+# Varsayılan "simülasyon" modu bu paket olmadan çalışır. pywhatkit modu
+# için ayrıca:  pip install -r requirements-whatsapp.txt

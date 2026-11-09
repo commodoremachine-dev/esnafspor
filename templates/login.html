@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="tr" class="h-full">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Giriş · {{ app_name }}</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+</head>
+<body class="flex min-h-full items-center justify-center bg-slate-50 px-4 text-slate-900 antialiased">
+  <main class="card w-full max-w-sm p-6">
+    <h1 class="text-lg font-bold">{{ app_name }}</h1>
+    <p class="hint mt-1">Panele erişmek için parolayı girin.</p>
+
+    {% with flashed = get_flashed_messages(with_categories=true) %}
+      {% for category, message in flashed %}
+        <p class="mt-4 rounded-xl border border-sky-200 bg-sky-50 p-3 text-sm text-sky-800" role="status">{{ message }}</p>
+      {% endfor %}
+    {% endwith %}
+    {% if error %}
+      <p class="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800" role="alert">{{ error }}</p>
+    {% endif %}
+
+    <form method="post" action="{{ url_for('panel.login') }}" class="mt-5 space-y-4">
+      {% include "_csrf.html" %}
+      <input type="hidden" name="next" value="{{ next_url }}">
+      <div>
+        <label class="label" for="password">Parola</label>
+        <input class="input" id="password" name="password" type="password" required autofocus autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn-primary w-full">Giriş yap</button>
+    </form>
+  </main>
+</body>
+</html>

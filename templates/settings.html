@@ -1,0 +1,356 @@
+{% extends "base.html" %}
+{% block title %}Ayarlar · {{ settings.business_name }}{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-5xl space-y-6">
+
+  <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <h1 class="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">Ayarlar</h1>
+      <p class="mt-1 text-sm text-slate-500">İşletme bilgileri, otomatik mesajlar ve WhatsApp bağlantısı.</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="badge {{ 'bg-emerald-50 text-emerald-700 ring-emerald-200' if provider_ready else 'bg-rose-50 text-rose-700 ring-rose-200' }}">
+        <span class="h-1.5 w-1.5 rounded-full {{ 'bg-emerald-500' if provider_ready else 'bg-rose-500' }}"></span>
+        {{ settings.whatsapp_provider }}
+      </span>
+    </div>
+  </div>
+
+  <form method="post" action="{{ url_for('panel.save_settings') }}" class="space-y-6">
+    {% include "_csrf.html" %}
+
+    {# --- İşletme ------------------------------------------------------- #}
+    <section id="isletme" class="card p-5 sm:p-6">
+      <div class="flex items-center gap-2">
+        <span class="grid h-8 w-8 place-items-center rounded-lg bg-brand-50 text-brand-600">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 21h18M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/></svg>
+        </span>
+        <div>
+          <h2 class="text-sm font-bold text-slate-900">İşletme</h2>
+          <p class="text-[11px] text-slate-500">Panelde ve mesajlarda görünen bilgiler.</p>
+        </div>
+      </div>
+      <div class="mt-4 grid gap-4 sm:grid-cols-2">
+        <div>
+          <label class="label" for="business_name">İşletme adı</label>
+          <input class="input" id="business_name" name="business_name" type="text" required maxlength="80"
+                 value="{{ settings.business_name }}" placeholder="Örn. Kuaför Ayşe">
+        </div>
+        <div>
+          <label class="label" for="timezone">Saat dilimi</label>
+          <input class="input" id="timezone" name="timezone" type="text" required maxlength="60"
+                 value="{{ settings.timezone }}" placeholder="Europe/Istanbul" list="tz-list">
+          <datalist id="tz-list">
+            <option value="Europe/Istanbul"></option>
+            <option value="Europe/London"></option>
+            <option value="Europe/Berlin"></option>
+            <option value="America/New_York"></option>
+          </datalist>
+          <p class="mt-1 text-[11px] text-slate-400">Panel ve mesaj saatleri bu dilime göre gösterilir.</p>
+        </div>
+        <div class="sm:col-span-2">
+          <label class="label" for="google_review_url">Google yorum linki</label>
+          <input class="input" id="google_review_url" name="google_review_url" type="url" maxlength="500"
+                 value="{{ settings.google_review_url }}" placeholder="https://g.page/r/.../review">
+          <p class="mt-1 text-[11px] text-slate-400">
+            Google İşletme Profili → "Yorum iste" bağlantısı. Yorum mesajındaki <code class="rounded bg-slate-100 px-1">{link}</code> yer tutucusuna yazılır.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    {# --- Zamanlama ----------------------------------------------------- #}
+    <section id="zamanlama" class="card p-5 sm:p-6">
+      <div class="flex items-center gap-2">
+        <span class="grid h-8 w-8 place-items-center rounded-lg bg-amber-50 text-amber-600">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        </span>
+        <div>
+          <h2 class="text-sm font-bold text-slate-900">Zamanlama</h2>
+          <p class="text-[11px] text-slate-500">Otomatik mesajların ne zaman gönderileceği.</p>
+        </div>
+      </div>
+      <div class="mt-4 grid gap-4 sm:grid-cols-3">
+        <div>
+          <label class="label" for="confirmation_lead_hours">Onay mesajı öne alması</label>
+          <div class="relative">
+            <input class="input pr-12" id="confirmation_lead_hours" name="confirmation_lead_hours"
+                   type="number" min="0" max="72" step="0.5" required value="{{ settings.confirmation_lead_hours }}">
+            <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-slate-400">saat</span>
+          </div>
+          <p class="mt-1 text-[11px] text-slate-400">Varsayılan: randevudan 2 saat önce.</p>
+        </div>
+        <div>
+          <label class="label" for="review_delay_hours">Yorum mesajı gecikmesi</label>
+          <div class="relative">
+            <input class="input pr-12" id="review_delay_hours" name="review_delay_hours"
+                   type="number" min="0" max="168" step="0.5" required value="{{ settings.review_delay_hours }}">
+            <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-slate-400">saat</span>
+          </div>
+          <p class="mt-1 text-[11px] text-slate-400">Randevu bitiminden sonra. Varsayılan: 1 saat.</p>
+        </div>
+        <div>
+          <label class="label" for="default_duration_minutes">Varsayılan süre</label>
+          <div class="relative">
+            <input class="input pr-10" id="default_duration_minutes" name="default_duration_minutes"
+                   type="number" min="15" max="480" step="15" required value="{{ settings.default_duration_minutes }}">
+            <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-slate-400">dk</span>
+          </div>
+          <p class="mt-1 text-[11px] text-slate-400">Yeni randevu formunun varsayılanı.</p>
+        </div>
+      </div>
+      <div class="mt-4 rounded-xl bg-slate-50 p-3 text-xs leading-relaxed text-slate-600">
+        <p>Kaydettiğinizde yaklaşan randevuların mesaj saatleri <strong>otomatik yeniden hesaplanır</strong>; gönderilmiş mesajlar tekrarlanmaz.</p>
+      </div>
+    </section>
+
+    {# --- WhatsApp ------------------------------------------------------ #}
+    <section id="whatsapp" class="card p-5 sm:p-6">
+      <div class="flex items-center gap-2">
+        <span class="grid h-8 w-8 place-items-center rounded-lg bg-emerald-50 text-emerald-600">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+        </span>
+        <div>
+          <h2 class="text-sm font-bold text-slate-900">WhatsApp bağlantısı</h2>
+          <p class="text-[11px] text-slate-500">Gönderim yöntemini seçin.</p>
+        </div>
+      </div>
+
+      <div class="mt-4 grid gap-4 sm:grid-cols-2">
+        <div>
+          <label class="label" for="whatsapp_provider">Sağlayıcı</label>
+          <select class="input" id="whatsapp_provider" name="whatsapp_provider">
+            {% for key, label in providers.items() %}
+              <option value="{{ key }}" {{ 'selected' if settings.whatsapp_provider == key else '' }}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          <p class="mt-1.5 text-[11px] {{ 'text-emerald-700' if provider_ready else 'text-rose-700' }}">{{ provider_message }}</p>
+        </div>
+        <div class="rounded-xl bg-slate-50 p-3 text-[11px] leading-relaxed text-slate-500">
+          <p class="font-semibold text-slate-700">Nasıl seçmeli?</p>
+          <p class="mt-1"><strong>Simülasyon:</strong> Kurulum ve test için; gerçek mesaj gitmez.</p>
+          <p><strong>pywhatkit:</strong> Bilgisayarda WhatsApp Web açıkken çalışır.</p>
+          <p><strong>HTTP:</strong> Baileys/WAHA gibi bir ağ geçidiyle 7/24 gönderim.</p>
+        </div>
+      </div>
+
+      <div id="http-fields" class="mt-4 grid gap-4 rounded-xl border border-dashed border-slate-300 p-4 sm:grid-cols-2">
+        <div class="sm:col-span-2">
+          <label class="label" for="http_api_url">HTTP API adresi</label>
+          <input class="input" id="http_api_url" name="http_api_url" type="url" maxlength="500"
+                 value="{{ settings.http_api_url }}" placeholder="http://127.0.0.1:3000/send  veya  http://127.0.0.1:3000">
+          <p class="mt-1 text-[11px] text-slate-400">
+            <strong>generic</strong> modda tam uç nokta; <strong>WAHA</strong> modda sunucu kök adresi (ör. http://127.0.0.1:3000) yeterlidir.
+          </p>
+        </div>
+        <div>
+          <label class="label" for="http_mode">İstek biçimi</label>
+          <select class="input" id="http_mode" name="http_mode">
+            <option value="generic" {{ 'selected' if settings.http_mode == 'generic' else '' }}>generic — {"to","message"}</option>
+            <option value="waha" {{ 'selected' if settings.http_mode == 'waha' else '' }}>WAHA — /api/sendText</option>
+          </select>
+        </div>
+        <div>
+          <label class="label" for="http_session">WAHA oturum adı</label>
+          <input class="input" id="http_session" name="http_session" type="text" maxlength="60"
+                 value="{{ settings.http_session }}" placeholder="default">
+        </div>
+        <div class="sm:col-span-2">
+          <label class="label" for="http_api_token">API anahtarı <span class="font-normal normal-case tracking-normal text-slate-400">(isteğe bağlı)</span></label>
+          <input class="input" id="http_api_token" name="http_api_token" type="password" maxlength="500"
+                 value="" autocomplete="off"
+                 placeholder="{{ 'Kayıtlı anahtar var — değiştirmek için yeni değer yazın' if http_token_set else 'Bearer token' }}">
+          <p class="hint mt-1.5">API adresini değiştirirseniz kayıtlı anahtar güvenlik için silinir; yeni adres için anahtarı tekrar girin.</p>
+          {% if http_token_set %}
+            <label class="mt-2 flex cursor-pointer items-center gap-2 text-[11px] text-slate-500">
+              <input type="checkbox" name="clear_http_token" value="1" class="h-3.5 w-3.5 rounded border-slate-300 text-brand-600 focus:ring-brand-500">
+              Kayıtlı API anahtarını sil
+            </label>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    {# --- Şablonlar ----------------------------------------------------- #}
+    <section id="sablonlar" class="card p-5 sm:p-6">
+      <div class="flex items-center gap-2">
+        <span class="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 5h16M4 12h10M4 19h16"/></svg>
+        </span>
+        <div>
+          <h2 class="text-sm font-bold text-slate-900">Mesaj şablonları</h2>
+          <p class="text-[11px] text-slate-500">Yer tutucular gönderim anında doldurulur.</p>
+        </div>
+      </div>
+
+      <div class="mt-4 space-y-4">
+        <div>
+          <label class="label" for="msg_confirmation">Randevu onay mesajı</label>
+          <textarea class="input font-mono text-[13px]" id="msg_confirmation" name="msg_confirmation" rows="3"
+                    required maxlength="900">{{ settings.msg_confirmation }}</textarea>
+        </div>
+        <div>
+          <label class="label" for="msg_review">Google yorum mesajı</label>
+          <textarea class="input font-mono text-[13px]" id="msg_review" name="msg_review" rows="3"
+                    required maxlength="900">{{ settings.msg_review }}</textarea>
+        </div>
+        <div>
+          <label class="label" for="msg_manual">Manuel hatırlatma mesajı</label>
+          <textarea class="input font-mono text-[13px]" id="msg_manual" name="msg_manual" rows="3"
+                    maxlength="900">{{ settings.msg_manual }}</textarea>
+          <p class="hint mt-1.5">Telefon panelindeki “Randevunuzu unutmayın” düğmesiyle gönderilir. Boş bırakılırsa varsayılan metin kullanılır.</p>
+        </div>
+      </div>
+
+      <div class="mt-4 rounded-xl bg-slate-50 p-3">
+        <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Desteklenen yer tutucular</p>
+        <div class="mt-2 flex flex-wrap gap-1.5 text-[11px]">
+          {% for token, desc in [('{isim}', 'müşteri adı'), ('{ne_zaman}', 'bugün / yarın / tarih'), ('{saat}', 'randevu saati'), ('{tarih}', 'randevu tarihi'), ('{gun}', 'gün adı'), ('{isletme}', 'işletme adı'), ('{link}', 'Google yorum linki'), ('{hizmet}', 'hizmet'), ('{telefon}', 'müşteri telefonu')] %}
+            <span class="rounded-lg bg-white px-2 py-1 font-mono text-slate-700 ring-1 ring-slate-200" title="{{ desc }}">{{ token }}</span>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+    {# --- Motor --------------------------------------------------------- #}
+    <section id="motor" class="card p-5 sm:p-6">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-sky-50 text-sky-600">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg>
+          </span>
+          <div>
+            <h2 class="text-sm font-bold text-slate-900">Otomatik gönderim motoru</h2>
+            <p class="text-[11px] text-slate-500">Arka planda {{ worker_state.interval }} saniyede bir kontrol eder.</p>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          {% if worker_state.running and not worker_state.stale %}
+            <span class="badge bg-emerald-50 text-emerald-700 ring-emerald-200">Çalışıyor</span>
+          {% elif worker_state.running %}
+            <span class="badge bg-amber-50 text-amber-700 ring-amber-200">Gecikmiş</span>
+          {% elif worker_state.external %}
+            <span class="badge bg-amber-50 text-amber-700 ring-amber-200">Harici scheduler çalışıyor</span>
+          {% elif worker_state.error %}
+            <span class="badge bg-rose-50 text-rose-700 ring-rose-200" title="{{ worker_state.error }}">Hata</span>
+          {% else %}
+            <span class="badge bg-slate-100 text-slate-600 ring-slate-200">Durduruldu</span>
+          {% endif %}
+          <span class="text-[11px] text-slate-500">
+            Son kontrol: {% if worker_state.last_tick_at %}{{ worker_state.last_tick_raw|local_datetime }}{% else %}henüz yok{% endif %}
+          </span>
+        </div>
+      </div>
+
+      <div class="mt-4 grid gap-4 sm:grid-cols-3">
+        <div class="rounded-xl bg-slate-50 p-3">
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Bekleyen onay</p>
+          <p class="mt-1 text-xl font-bold text-slate-900">{{ worker_state.pending.confirmation }}</p>
+        </div>
+        <div class="rounded-xl bg-slate-50 p-3">
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Bekleyen yorum</p>
+          <p class="mt-1 text-xl font-bold text-slate-900">{{ worker_state.pending.review }}</p>
+        </div>
+        <div class="rounded-xl bg-slate-50 p-3">
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Sağlayıcı</p>
+          <p class="mt-1 text-sm font-semibold text-slate-900">{{ settings.whatsapp_provider }}</p>
+        </div>
+      </div>
+
+      <div class="mt-4 flex flex-wrap items-center gap-4">
+        <label class="flex cursor-pointer items-center gap-2.5 text-sm text-slate-700">
+          <input type="checkbox" name="worker_enabled" value="1" class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                 {{ 'checked' if settings.worker_enabled == '1' else '' }}>
+          Otomatik gönderim açık
+        </label>
+        <div class="flex items-center gap-2">
+          <label class="text-xs font-medium text-slate-600" for="max_send_attempts">Maks. deneme</label>
+          <input class="input w-20 py-1.5 text-xs" id="max_send_attempts" name="max_send_attempts" type="number"
+                 min="1" max="10" value="{{ settings.max_send_attempts }}">
+          <label class="text-xs font-medium text-slate-600" for="retry_delay_minutes">Tekrar aralığı (dk)</label>
+          <input class="input w-20 py-1.5 text-xs" id="retry_delay_minutes" name="retry_delay_minutes" type="number"
+                 min="1" max="1440" value="{{ settings.retry_delay_minutes }}">
+        </div>
+      </div>
+      {% if worker_state.error %}
+        <p class="mt-3 rounded-lg bg-rose-50 px-3 py-2 text-[11px] leading-relaxed text-rose-700">{{ worker_state.error }}</p>
+      {% endif %}
+      <p class="mt-3 text-[11px] leading-relaxed text-slate-500">
+        Scheduler panel açıkken otomatik çalışır. Panel kapalıyken de devam etmesi için
+        <code class="rounded bg-slate-100 px-1 py-0.5">python scheduler.py</code> ayrı bir süreçte çalıştırılabilir.
+      </p>
+    </section>
+
+    <div class="sticky bottom-4 z-20 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-soft backdrop-blur">
+      <p class="text-xs text-slate-500">Değişiklikler bu bilgisayardaki SQLite veritabanına kaydedilir.</p>
+      <button type="submit" class="btn-primary">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
+        Ayarları kaydet
+      </button>
+    </div>
+  </form>
+
+  <div class="grid gap-6 lg:grid-cols-2">
+    {# --- Test mesajı --------------------------------------------------- #}
+    <section class="card p-5 sm:p-6">
+      <div class="flex items-center gap-2">
+        <span class="grid h-8 w-8 place-items-center rounded-lg bg-rose-50 text-rose-600">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg>
+        </span>
+        <div>
+          <h2 class="text-sm font-bold text-slate-900">Test mesajı gönder</h2>
+          <p class="text-[11px] text-slate-500">Seçili sağlayıcıyı hemen deneyin. Randevu kaydı oluşturmaz.</p>
+        </div>
+      </div>
+      <form method="post" action="{{ url_for('panel.send_test_message') }}" class="mt-4 space-y-3">
+        {% include "_csrf.html" %}
+        <div>
+          <label class="label" for="test_phone">Telefon numarası</label>
+          <input class="input" id="test_phone" name="phone" type="tel" required inputmode="tel"
+                 placeholder="0555 111 22 33">
+        </div>
+        <div>
+          <label class="label" for="test_message">Mesaj</label>
+          <textarea class="input" id="test_message" name="message" rows="2" maxlength="900">Merhaba, bu bir test mesajıdır. WhatsApp bağlantısı çalışıyor.</textarea>
+        </div>
+        <button type="submit" class="btn-secondary w-full">Test mesajını gönder</button>
+      </form>
+    </section>
+
+    {# --- Sistem bilgisi ------------------------------------------------ #}
+    <section class="card p-5 sm:p-6">
+      <div class="flex items-center gap-2">
+        <span class="grid h-8 w-8 place-items-center rounded-lg bg-slate-100 text-slate-600">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+        </span>
+        <div>
+          <h2 class="text-sm font-bold text-slate-900">Sistem</h2>
+          <p class="text-[11px] text-slate-500">Yerel kurulum bilgileri.</p>
+        </div>
+      </div>
+      <dl class="mt-4 space-y-2 text-sm">
+        <div class="flex items-center justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2">
+          <dt class="text-xs font-medium text-slate-500">Veritabanı</dt>
+          <dd class="truncate font-mono text-[11px] text-slate-700" title="{{ database_display }}">{{ database_display }}</dd>
+        </div>
+        <div class="flex items-center justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2">
+          <dt class="text-xs font-medium text-slate-500">Çalışma biçimi</dt>
+          <dd class="text-xs font-medium text-slate-700">Yerel · tek kullanıcı</dd>
+        </div>
+        <div class="flex items-center justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2">
+          <dt class="text-xs font-medium text-slate-500">Durum uç noktası</dt>
+          <dd><a href="{{ url_for('panel.health') }}" class="text-xs font-semibold text-brand-700 hover:text-brand-800">/api/health</a></dd>
+        </div>
+      </dl>
+      <form method="post" action="{{ url_for('panel.run_worker_tick') }}" class="mt-4">
+        {% include "_csrf.html" %}
+        <button type="submit" class="btn-secondary w-full">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>
+          Motoru şimdi çalıştır
+        </button>
+      </form>
+    </section>
+  </div>
+</div>
+{% endblock %}

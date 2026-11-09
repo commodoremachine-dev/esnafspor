@@ -1,0 +1,6 @@
+# İsteğe bağlı WhatsApp Web (pywhatkit) desteği
+# Masaüstü oturumu + WhatsApp Web'e giriş yapılmış tarayıcı gerektirir.
+# Kurulum: pip install -r requirements-whatsapp.txt
+
+-r requirements.txt
+pywhatkit>=5.4

@@ -1,0 +1,12 @@
+{
+  "name": "esnaf-panel-css",
+  "private": true,
+  "description": "Panel CSS'ini static/app.css olarak derler. Yalnızca stil değişince gerekir.",
+  "scripts": {
+    "build": "tailwindcss -c tailwind.config.js -i input.css -o ../static/app.css --minify",
+    "watch": "tailwindcss -c tailwind.config.js -i input.css -o ../static/app.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "3.4.17"
+  }
+}

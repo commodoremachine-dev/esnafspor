@@ -1,0 +1,378 @@
+{% extends "base.html" %}
+{% block title %}Panel · {{ settings.business_name }}{% endblock %}
+
+{% block content %}
+<div class="space-y-6 sm:space-y-8">
+
+  {# --- Uyarı şeritleri -------------------------------------------------- #}
+  {% if settings.whatsapp_provider == 'simulation' %}
+    <div class="flex flex-col gap-2 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 sm:flex-row sm:items-center sm:justify-between">
+      <p class="flex items-start gap-2">
+        <svg class="mt-0.5 h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+        <span><strong>Simülasyon modu:</strong> Mesajlar gerçek WhatsApp'a gönderilmez; gönderim günlüğe yazılır. Panelin tüm akışını güvenle test edebilirsiniz.</span>
+      </p>
+      <a href="{{ url_for('panel.settings_page') }}#whatsapp" class="shrink-0 font-semibold text-amber-900 underline decoration-amber-300 underline-offset-2 hover:decoration-amber-500">WhatsApp'ı bağla →</a>
+    </div>
+  {% endif %}
+  {% if not settings.google_review_url %}
+    <div class="flex flex-col gap-2 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900 sm:flex-row sm:items-center sm:justify-between">
+      <p><strong>Google yorum linki eklenmedi.</strong> Gerçek gönderim modunda yorum mesajları, link eklenene kadar atlanır.</p>
+      <a href="{{ url_for('panel.settings_page') }}#isletme" class="shrink-0 font-semibold underline decoration-sky-300 underline-offset-2 hover:decoration-sky-500">Linki ekle →</a>
+    </div>
+  {% endif %}
+
+  {# --- Başlık ----------------------------------------------------------- #}
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <h1 class="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">Randevu paneli</h1>
+      <p class="mt-1 text-sm text-slate-500">
+        {{ now_local.strftime('%d.%m.%Y') }} · Saat {{ now_local.strftime('%H:%M') }} ·
+        Önümüzdeki 7 günde <span class="font-semibold text-slate-700">{{ stats.upcoming_week }}</span> randevu
+      </p>
+    </div>
+    <div class="badge w-fit bg-brand-50 text-brand-700 ring-brand-200">
+      <span class="h-1.5 w-1.5 rounded-full bg-brand-500"></span>
+      {{ settings.timezone }}
+    </div>
+  </div>
+
+  {# --- İstatistikler ---------------------------------------------------- #}
+  <section class="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4" aria-label="Özet">
+    <div class="card p-4 sm:p-5">
+      <div class="flex items-center justify-between">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Bugünkü randevu</p>
+        <span class="grid h-8 w-8 place-items-center rounded-lg bg-brand-50 text-brand-600">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        </span>
+      </div>
+      <p class="stat-value">{{ stats.today_total }}</p>
+      <p class="hint mt-1">Bugün takvimde planlı</p>
+    </div>
+
+    <div class="card p-4 sm:p-5">
+      <div class="flex items-center justify-between">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Onay bekleyen</p>
+        <span class="grid h-8 w-8 place-items-center rounded-lg bg-amber-50 text-amber-600">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
+        </span>
+      </div>
+      <p class="stat-value">{{ stats.pending_confirmation }}</p>
+      <p class="hint mt-1">Onay mesajı bekleyen iş</p>
+    </div>
+
+    <div class="card p-4 sm:p-5">
+      <div class="flex items-center justify-between">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Yorum bekleyen</p>
+        <span class="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m12 17.3-6.2 3.3 1.2-6.9-5-4.9 6.9-1L12 1.5l3.1 6.3 6.9 1-5 4.9 1.2 6.9z"/></svg>
+        </span>
+      </div>
+      <p class="stat-value">{{ stats.pending_review }}</p>
+      <p class="hint mt-1">Google yorum mesajı işi</p>
+    </div>
+
+    <div class="card p-4 sm:p-5">
+      <div class="flex items-center justify-between">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Bugün gönderilen</p>
+        <span class="grid h-8 w-8 place-items-center rounded-lg bg-sky-50 text-sky-600">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg>
+        </span>
+      </div>
+      <p class="stat-value">{{ stats.messages_today }}</p>
+      <p class="hint mt-1">Başarılı + simüle mesaj</p>
+    </div>
+  </section>
+
+  <div class="grid gap-6 xl:grid-cols-[minmax(0,380px)_minmax(0,1fr)] xl:items-start">
+
+    {# --- Yeni randevu formu --------------------------------------------- #}
+    <section class="card p-5 xl:sticky xl:top-24" aria-labelledby="yeni-randevu">
+      <div class="flex items-center justify-between">
+        <h2 id="yeni-randevu" class="text-base font-bold text-slate-900">Yeni randevu</h2>
+        <span class="badge bg-slate-50 text-slate-600 ring-slate-200">Müşteri + randevu</span>
+      </div>
+      <p class="hint mt-1">Kaydettiğinizde otomatik mesajlar planlanır.</p>
+
+      <form method="post" action="{{ url_for('panel.create_appointment') }}" class="mt-4 space-y-4">
+        {% include "_csrf.html" %}
+        <div>
+          <label class="label" for="name">Müşteri adı</label>
+          <input class="input" id="name" name="name" type="text" required maxlength="80"
+                 autocomplete="name" placeholder="Örn. Ayşe Yılmaz">
+        </div>
+
+        <div>
+          <label class="label" for="phone">Telefon numarası</label>
+          <input class="input" id="phone" name="phone" type="tel" required inputmode="tel"
+                 autocomplete="tel" placeholder="0555 111 22 33">
+          <p class="mt-1 text-[11px] text-slate-400">+90, 0 veya 90 ile başlayabilir; WhatsApp numarası olmalı.</p>
+        </div>
+
+        <div>
+          <label class="label" for="starts_at">Randevu tarihi ve saati</label>
+          <input class="input" id="starts_at" name="starts_at" type="datetime-local"
+                 required step="900" value="{{ default_datetime }}" data-min="{{ min_datetime }}">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="label" for="duration_minutes">Süre</label>
+            <select class="input" id="duration_minutes" name="duration_minutes">
+              {% for d in duration_options %}
+                <option value="{{ d }}" {{ 'selected' if d == default_duration else '' }}>{{ d }} dk</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label class="label" for="service">Hizmet</label>
+            <input class="input" id="service" name="service" type="text" maxlength="80"
+                   placeholder="Saç kesimi">
+          </div>
+        </div>
+
+        <div>
+          <label class="label" for="notes">Not <span class="font-normal normal-case tracking-normal text-slate-400">(isteğe bağlı)</span></label>
+          <textarea class="input" id="notes" name="notes" rows="2" maxlength="300"
+                    placeholder="Müşteri notu, özel istek..."></textarea>
+        </div>
+
+        <button type="submit" class="btn-primary w-full">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          Randevuyu kaydet
+        </button>
+      </form>
+
+      <div class="mt-4 rounded-xl bg-slate-50 p-3 text-[11px] leading-relaxed text-slate-500">
+        <p><span class="font-semibold text-slate-700">Onay mesajı:</span> randevudan {{ settings.confirmation_lead_hours }} saat önce.</p>
+        <p><span class="font-semibold text-slate-700">Yorum mesajı:</span> randevu bitişinden {{ settings.review_delay_hours }} saat sonra.</p>
+      </div>
+    </section>
+
+    {# --- Randevu listesi ------------------------------------------------- #}
+    <section class="min-w-0 space-y-3" aria-labelledby="randevular">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 id="randevular" class="text-base font-bold text-slate-900">{{ active_filter_label }}</h2>
+          <p class="text-xs text-slate-500">{{ rows|length }} kayıt · {{ confirmed_count }} onaylı</p>
+        </div>
+        <div class="flex flex-wrap gap-1 rounded-xl bg-slate-100 p-1" role="tablist" aria-label="Randevu filtresi">
+          {% for key, label in [('upcoming', 'Yaklaşan'), ('today', 'Bugün'), ('past', 'Geçmiş'), ('all', 'Tümü')] %}
+            <a href="{{ url_for('panel.index', filter=key) }}"
+               class="rounded-lg px-3 py-1.5 text-xs font-semibold transition {{ 'bg-white text-slate-900 shadow-sm' if active_filter == key else 'text-slate-500 hover:text-slate-800' }}">
+              {{ label }}
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+
+      {% if rows %}
+        <div class="space-y-2.5">
+          {% for row in rows %}
+            {% set a = row.a %}
+            <article class="card p-4 transition hover:border-slate-300 {{ 'opacity-70' if a.status in ('cancelled', 'no_show') else '' }}">
+              <div class="flex flex-col gap-3 sm:flex-row sm:items-start">
+                <div class="flex items-center gap-2 sm:w-16 sm:flex-col sm:gap-0">
+                  <p class="text-lg font-bold leading-none tracking-tight text-slate-900">{{ a.starts_at|local_time }}</p>
+                  <p class="text-[11px] font-medium uppercase tracking-wide text-slate-400 sm:mt-1">{{ a.starts_at|local_day_short }}</p>
+                </div>
+
+                <div class="min-w-0 flex-1">
+                  <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <h3 class="text-sm font-bold text-slate-900">{{ a.customer_name }}</h3>
+                    <span class="badge {{ row.status_classes }}">{{ row.status_label }}</span>
+                    {% if a.customer_opted_out %}
+                      <span class="badge bg-rose-50 text-rose-700 ring-rose-200" title="Bu müşteriye otomatik veya manuel mesaj gönderilmez.">🚫 Mesaj istemiyor</span>
+                    {% endif %}
+                    <a href="tel:+{{ a.customer_phone }}" class="text-xs font-medium text-slate-500 hover:text-brand-700">{{ a.customer_phone|phone }}</a>
+                  </div>
+                  <p class="mt-1 text-xs text-slate-500">
+                    {% if a.service %}{{ a.service }} · {% endif %}{{ a.duration_minutes }} dk
+                    {% if a.notes %} · <span class="text-slate-400">{{ a.notes }}</span>{% endif %}
+                  </p>
+
+                  <div class="mt-2 flex flex-wrap gap-1.5">
+                    {% if row.confirmation %}
+                      <span class="badge {{ row.confirmation.classes }}" title="{{ row.confirmation.tooltip }}">
+                        <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
+                        Onay · {{ row.confirmation.short }}
+                      </span>
+                    {% endif %}
+                    {% if row.review %}
+                      <span class="badge {{ row.review.classes }}" title="{{ row.review.tooltip }}">
+                        <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m12 17.3-6.2 3.3 1.2-6.9-5-4.9 6.9-1L12 1.5l3.1 6.3 6.9 1-5 4.9 1.2 6.9z"/></svg>
+                        Yorum · {{ row.review.short }}
+                      </span>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <div class="flex shrink-0 items-center gap-1.5 sm:self-start">
+                  {% if row.confirmation and row.confirmation.can_send and a.status not in ('cancelled', 'no_show') %}
+                    <form method="post" action="{{ url_for('panel.send_reminder', reminder_id=row.confirmation.id) }}">
+                      {% include "_csrf.html" %}
+                      <input type="hidden" name="next" value="{{ current_url }}">
+                      <button type="submit" class="btn-secondary px-2.5 py-2 text-xs" title="Onay mesajını şimdi gönder">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg>
+                      </button>
+                    </form>
+                  {% endif %}
+
+                  <details class="relative" data-menu>
+                    <summary class="btn-secondary cursor-pointer px-3 py-2 text-xs" aria-label="Randevu işlemleri">
+                      İşlemler
+                      <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+                    </summary>
+                    <div class="absolute right-0 z-20 mt-2 w-64 rounded-xl border border-slate-200 bg-white p-1.5 shadow-soft">
+                      {% if row.confirmation and row.confirmation.can_send %}
+                        <form method="post" action="{{ url_for('panel.send_reminder', reminder_id=row.confirmation.id) }}">
+                          {% include "_csrf.html" %}
+                          <input type="hidden" name="next" value="{{ current_url }}">
+                          <button type="submit" class="menu-form-button">
+                            <svg class="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg>
+                            Onay mesajını şimdi gönder
+                          </button>
+                        </form>
+                      {% endif %}
+                      {% if row.review and row.review.can_send %}
+                        <form method="post" action="{{ url_for('panel.send_reminder', reminder_id=row.review.id) }}">
+                          {% include "_csrf.html" %}
+                          <input type="hidden" name="next" value="{{ current_url }}">
+                          <button type="submit" class="menu-form-button">
+                            <svg class="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg>
+                            Yorum mesajını şimdi gönder
+                          </button>
+                        </form>
+                      {% endif %}
+                      {% if row.confirmation or row.review %}
+                        <div class="my-1 border-t border-slate-100"></div>
+                      {% endif %}
+
+                      {% if row.can_act %}
+                        {% for status, label in [('confirmed', 'Onaylandı olarak işaretle'), ('completed', 'Geldi / tamamlandı'), ('no_show', 'Müşteri gelmedi'), ('cancelled', 'İptal et')] %}
+                          {% if status != a.status %}
+                            <form method="post" action="{{ url_for('panel.update_appointment_status', appointment_id=a.id) }}">
+                              {% include "_csrf.html" %}
+                              <input type="hidden" name="status" value="{{ status }}">
+                              <input type="hidden" name="next" value="{{ current_url }}">
+                              <button type="submit" class="menu-form-button">{{ label }}</button>
+                            </form>
+                          {% endif %}
+                        {% endfor %}
+                      {% else %}
+                        <form method="post" action="{{ url_for('panel.update_appointment_status', appointment_id=a.id) }}">
+                          {% include "_csrf.html" %}
+                          <input type="hidden" name="status" value="scheduled">
+                          <input type="hidden" name="next" value="{{ current_url }}">
+                          <button type="submit" class="menu-form-button">Yeniden aç</button>
+                        </form>
+                      {% endif %}
+
+                      <div class="my-1 border-t border-slate-100"></div>
+                      <form method="post" action="{{ url_for('panel.set_customer_opt_out', customer_id=a.customer_id) }}">
+                        {% include "_csrf.html" %}
+                        <input type="hidden" name="opted_out" value="{{ '0' if a.customer_opted_out else '1' }}">
+                        <input type="hidden" name="next" value="{{ current_url }}">
+                        <button type="submit" class="menu-form-button">
+                          {{ '↩️ Mesaj iznini geri ver' if a.customer_opted_out else '🚫 Müşteri mesaj istemiyor' }}
+                        </button>
+                      </form>
+                      <div class="my-1 border-t border-slate-100"></div>
+                      <form method="post" action="{{ url_for('panel.delete_appointment', appointment_id=a.id) }}"
+                            data-confirm="Bu randevu ve bağlı otomatik mesajlar silinsin mi?">
+                        {% include "_csrf.html" %}
+                        <input type="hidden" name="next" value="{{ current_url }}">
+                        <button type="submit" class="menu-form-button text-rose-600 hover:bg-rose-50">
+                          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
+                          Randevuyu sil
+                        </button>
+                      </form>
+                    </div>
+                  </details>
+                </div>
+              </div>
+            </article>
+          {% endfor %}
+          {% if truncated %}
+            <p class="hint text-center">İlk {{ list_limit }} randevu gösteriliyor. Daha eskileri için “Bugün” veya “Yaklaşan” filtresini kullanın.</p>
+          {% endif %}
+        </div>
+      {% else %}
+        <div class="card flex flex-col items-center justify-center gap-3 p-10 text-center">
+          <span class="grid h-12 w-12 place-items-center rounded-2xl bg-slate-100 text-slate-400">
+            <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          </span>
+          <div>
+            <p class="text-sm font-semibold text-slate-800">Bu filtrede randevu yok</p>
+            <p class="hint mt-1">Soldaki formdan yeni bir randevu ekleyin; otomatik mesajlar hemen planlanır.</p>
+          </div>
+          <a href="{{ url_for('panel.index') }}" class="btn-secondary text-xs">Yaklaşan randevulara dön</a>
+        </div>
+      {% endif %}
+    </section>
+  </div>
+
+  {# --- Son mesajlar ----------------------------------------------------- #}
+  <section class="card overflow-hidden" aria-labelledby="mesajlar">
+    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
+      <div>
+        <h2 id="mesajlar" class="text-base font-bold text-slate-900">Son mesajlar</h2>
+        <p class="hint mt-0.5">Otomatik gönderimlerin ve test mesajlarının günlüğü (son 12 kayıt).</p>
+      </div>
+      <span class="badge bg-slate-50 text-slate-600 ring-slate-200">{{ messages|length }} kayıt</span>
+    </div>
+
+    {% if messages %}
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-left text-sm">
+          <thead class="bg-slate-50 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+            <tr>
+              <th class="px-5 py-2.5">Zaman</th>
+              <th class="px-3 py-2.5">Tür</th>
+              <th class="px-3 py-2.5">Alıcı</th>
+              <th class="px-3 py-2.5">Mesaj</th>
+              <th class="px-3 py-2.5">Durum</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            {% for m in messages %}
+              {% set kind_label = {'confirmation': 'Onay', 'review': 'Yorum', 'test': 'Test'}.get(m.kind, m.kind) %}
+              {% set kind_class = {
+                'confirmation': 'bg-amber-50 text-amber-700 ring-amber-200',
+                'review': 'bg-indigo-50 text-indigo-700 ring-indigo-200',
+                'test': 'bg-slate-50 text-slate-600 ring-slate-200'
+              }.get(m.kind, 'bg-slate-50 text-slate-600 ring-slate-200') %}
+              {% set status_label = {'sent': 'Gönderildi', 'simulated': 'Simüle', 'failed': 'Hata'}.get(m.status, m.status) %}
+              {% set status_class = {
+                'sent': 'bg-emerald-50 text-emerald-700 ring-emerald-200',
+                'simulated': 'bg-amber-50 text-amber-700 ring-amber-200',
+                'failed': 'bg-rose-50 text-rose-700 ring-rose-200'
+              }.get(m.status, 'bg-slate-50 text-slate-600 ring-slate-200') %}
+              <tr class="align-top hover:bg-slate-50/60">
+                <td class="whitespace-nowrap px-5 py-3 text-xs text-slate-500">{{ m.created_at|local_datetime }}</td>
+                <td class="px-3 py-3"><span class="badge {{ kind_class }}">{{ kind_label }}</span></td>
+                <td class="px-3 py-3">
+                  <p class="whitespace-nowrap text-xs font-semibold text-slate-700">{{ m.customer_name or m.phone|phone }}</p>
+                  <p class="text-[11px] text-slate-400">{{ m.phone|phone }}</p>
+                </td>
+                <td class="max-w-[320px] px-3 py-3">
+                  <p class="truncate text-xs text-slate-600" title="{{ m.body }}">{{ m.body }}</p>
+                  {% if m.error %}<p class="mt-0.5 truncate text-[11px] text-rose-600" title="{{ m.error }}">{{ m.error }}</p>{% endif %}
+                </td>
+                <td class="px-3 py-3">
+                  <span class="badge {{ status_class }}">{{ status_label }}</span>
+                  {% if m.simulated %}<p class="mt-1 text-[10px] text-slate-400">gerçek gönderim yok</p>{% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="px-5 py-8 text-center">
+        <p class="text-sm font-medium text-slate-700">Henüz mesaj gönderilmedi</p>
+        <p class="hint mt-1">Randevu ekleyin veya Ayarlar sayfasından test mesajı gönderin.</p>
+      </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

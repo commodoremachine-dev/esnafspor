@@ -1,0 +1,6 @@
+# İsteğe bağlı Streamlit paneli (telefondan hızlı randevu girişi).
+# Kurulum: pip install -r requirements-streamlit.txt
+# Çalıştır: streamlit run streamlit_app.py
+
+-r requirements.txt
+streamlit>=1.50,<2

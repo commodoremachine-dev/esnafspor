@@ -1,0 +1,46 @@
+/* Kaynak stil dosyası. Derlemek için: cd tailwind && npm install && npm run build */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .card { @apply rounded-2xl border border-slate-200 bg-white shadow-sm; }
+  .label { @apply mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-slate-500; }
+  .input {
+    @apply w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900
+           shadow-sm outline-none transition placeholder:text-slate-400
+           focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5
+           text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700
+           focus:outline-none focus:ring-4 focus:ring-brand-500/20 disabled:opacity-60;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300
+           bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition
+           hover:border-slate-400 hover:bg-slate-50 focus:outline-none focus:ring-4
+           focus:ring-slate-200;
+  }
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-rose-200
+           bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-700 shadow-sm transition
+           hover:bg-rose-100 focus:outline-none focus:ring-4 focus:ring-rose-100;
+  }
+  .badge { @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset; }
+  .nav-link { @apply rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900; }
+  .nav-link-active { @apply bg-brand-50 text-brand-700 hover:bg-brand-50 hover:text-brand-700; }
+  .menu-item {
+    @apply flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-slate-700
+           transition hover:bg-slate-50;
+  }
+  .menu-form-button {
+    @apply flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-slate-700
+           transition hover:bg-slate-50;
+  }
+  .stat-value { @apply mt-2 text-2xl font-bold tracking-tight text-slate-900; }
+  .hint { @apply text-xs leading-relaxed text-slate-500; }
+}
+details > summary { list-style: none; }
+details > summary::-webkit-details-marker { display: none; }
+html { -webkit-tap-highlight-color: transparent; }
