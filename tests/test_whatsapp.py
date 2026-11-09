@@ -116,11 +116,11 @@ class ProviderTests(unittest.TestCase):
             "http_mode": "generic",
             "http_api_token": "gizli",
         }
-        result = whatsapp.send("905551112233", "Merhaba", settings)
+        result = whatsapp.send("905321234567", "Merhaba", settings)
         self.assertTrue(result["ok"])
         request = urlopen_mock.call_args[0][0]
         payload = json.loads(request.data.decode("utf-8"))
-        self.assertEqual(payload["to"], "905551112233")
+        self.assertEqual(payload["to"], "905321234567")
         self.assertEqual(payload["message"], "Merhaba")
         self.assertEqual(request.get_header("Authorization"), "Bearer gizli")
 
@@ -133,13 +133,13 @@ class ProviderTests(unittest.TestCase):
             "http_mode": "waha",
             "http_session": "esnaf",
         }
-        result = whatsapp.send("905551112233", "Merhaba", settings)
+        result = whatsapp.send("905321234567", "Merhaba", settings)
         self.assertTrue(result["ok"])
         request = urlopen_mock.call_args[0][0]
         self.assertTrue(request.full_url.endswith("/api/sendText"))
         payload = json.loads(request.data.decode("utf-8"))
         self.assertEqual(payload["session"], "esnaf")
-        self.assertEqual(payload["chatId"], "905551112233@c.us")
+        self.assertEqual(payload["chatId"], "905321234567@c.us")
 
     @patch("whatsapp.urllib.request.urlopen")
     def test_http_error_is_reported(self, urlopen_mock):
@@ -152,9 +152,33 @@ class ProviderTests(unittest.TestCase):
             "whatsapp_provider": "http",
             "http_api_url": "http://127.0.0.1:3000/send",
         }
-        result = whatsapp.send("905551112233", "Merhaba", settings)
+        result = whatsapp.send("905321234567", "Merhaba", settings)
         self.assertFalse(result["ok"])
         self.assertIn("500", result["detail"])
+
+
+    @patch("whatsapp.urllib.request.urlopen")
+    def test_demo_numbers_never_get_real_messages(self, urlopen_mock):
+        import db
+
+        settings = {"whatsapp_provider": "http", "http_api_url": "http://127.0.0.1:3000/send"}
+        for phone in whatsapp.DEMO_PHONES:
+            result = whatsapp.send(phone, "Merhaba", settings)
+            self.assertFalse(result["ok"])
+            self.assertIn("demo", result["detail"])
+        urlopen_mock.assert_not_called()
+        # Simülasyonda demo çalışmaya devam eder.
+        self.assertTrue(whatsapp.send("905551112233", "x", {"whatsapp_provider": "simulation"})["ok"])
+
+    def test_seed_demo_uses_only_protected_numbers(self):
+        import inspect
+        import re as regex
+
+        import db
+
+        seeded = set(regex.findall(r"\b90\d{10}\b", inspect.getsource(db.seed_demo)))
+        self.assertTrue(seeded)
+        self.assertLessEqual(seeded, whatsapp.DEMO_PHONES)
 
 
 if __name__ == "__main__":

@@ -135,9 +135,15 @@ class AppointmentTests(DatabaseTestCase):
         self.assertNotIn("review", due_kinds)
 
     def test_dashboard_stats(self):
-        self.make_appointment(minutes_from_now=120)
         tz_name = db.get_setting("timezone")
         now = utils.now_utc()
+        # Randevu her zaman bugüne düşsün (gece saatlerinde "2 saat sonra" yarın olur).
+        local_now = utils.to_tz(now, tz_name)
+        midnight = local_now.replace(hour=23, minute=59, second=0, microsecond=0)
+        minutes_left = int((midnight - local_now).total_seconds() // 60)
+        if minutes_left < 10:
+            self.skipTest("gece yarısına çok yakın")
+        self.make_appointment(minutes_from_now=min(120, minutes_left - 5))
         start, end = utils.day_bounds_utc(now, tz_name)
         stats = db.dashboard_stats(start, end)
         self.assertGreaterEqual(stats["today_total"], 1)

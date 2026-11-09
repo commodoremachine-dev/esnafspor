@@ -46,6 +46,19 @@ _TR_FOLD = str.maketrans(
 _PLACEHOLDER = re.compile(r"\{([^{}]+)\}")
 
 
+# `python main.py --demo` ile eklenen örnek müşterilerin numaraları. Uydurmadır ama
+# gerçek birine ait olabilir: bu numaralara yalnızca simülasyonda "gönderilir".
+DEMO_PHONES = frozenset(
+    {
+        "905551112233",
+        "905322445566",
+        "905443778899",
+        "905554009911",
+        "905365123456",
+    }
+)
+
+
 class WhatsAppError(Exception):
     """Gönderim sırasında oluşan, kullanıcıya gösterilebilir hata."""
 
@@ -245,6 +258,12 @@ def send(phone: str, text: str, settings: dict[str, str]) -> dict[str, object]:
         return result
     if not re.fullmatch(r"90\d{10}", str(phone or "")):
         result["detail"] = "Telefon numarası normalize edilmemiş."
+        return result
+    if provider != "simulation" and phone in DEMO_PHONES:
+        result["detail"] = (
+            "Bu bir demo (örnek) müşteri numarası; gerçek mesaj gönderilmez. "
+            "Demo randevularını silip kendi müşterilerinizi ekleyin."
+        )
         return result
 
     try:

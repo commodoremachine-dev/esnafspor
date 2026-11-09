@@ -365,3 +365,18 @@ Tailwind sınıfları kullandıysanız CSS'i yeniden derleyin (Node.js gerekir):
 Bu araç, kendi işletmenizin müşterilerine hatırlatma göndermek için tasarlanmıştır.
 Spam/izin dışı mesaj göndermek WhatsApp kullanım koşullarına aykırıdır; sorumluluk
 kullanıcıya aittir.
+
+**Demo verisi gerçek numaralara mesaj gönderir mi?**
+Hayır. `--demo` ile eklenen örnek müşterilerin numaraları uydurmadır ama gerçek birine
+ait olabilir; bu yüzden bu numaralara yalnızca simülasyonda "gönderim" yapılır. Gerçek
+WhatsApp bağlantısı kurmadan önce demo randevularını silip kendi müşterilerinizi ekleyin.
+
+## Lisans
+
+[MIT](LICENSE) — dilediğiniz gibi kullanabilir, değiştirebilir ve dağıtabilirsiniz;
+yalnızca lisans ve telif notunu koruyun.
+
+Yazılım "olduğu gibi" sunulur. WhatsApp'ın resmi olmayan ağ geçitleriyle (Baileys,
+WAHA, pywhatkit) kullanımı WhatsApp kullanım koşullarına aykırı sayılabilir ve numaranın
+kapatılmasına yol açabilir. Müşterilerinize ileti göndermek için gerekli izinleri almak,
+KVKK ve İYS yükümlülüklerine uymak kullanıcının sorumluluğundadır.
